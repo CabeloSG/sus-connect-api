@@ -1,0 +1,36 @@
+spring:
+
+  application:
+    name: SUS Connect API
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sus_connect
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+
+    open-in-view: false
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    time-zone: America/Sao_Paulo
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
