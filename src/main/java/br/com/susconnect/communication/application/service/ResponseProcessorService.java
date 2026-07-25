@@ -2,6 +2,7 @@ package br.com.susconnect.communication.application.service;
 
 import br.com.susconnect.appointment.domain.entity.Appointment;
 import br.com.susconnect.appointment.infrastructure.persistence.AppointmentRepository;
+import br.com.susconnect.availability.application.usecase.ReleaseAvailableSlotUseCase;
 import br.com.susconnect.common.exception.ResourceNotFoundException;
 import br.com.susconnect.communication.application.command.dto.RegisterPatientResponseRequest;
 import br.com.susconnect.communication.application.validator.CommunicationResponseValidator;
@@ -25,6 +26,10 @@ import java.util.List;
  * independentemente do canal utilizado
  * (WhatsApp, SMS ou E-mail).
  *
+ * Quando o paciente recusa o atendimento, além de cancelar
+ * o agendamento, o horário correspondente é disponibilizado
+ * para reaproveitamento pela unidade de saúde.
+ *
  * Projeto: SUS Connect
  * Hackathon FIAP - Arquitetura e Desenvolvimento Java
  *
@@ -42,6 +47,7 @@ public class ResponseProcessorService {
     private final CommunicationRepository communicationRepository;
     private final CommunicationResponseValidator communicationResponseValidator;
     private final AppointmentRepository appointmentRepository;
+    private final ReleaseAvailableSlotUseCase releaseAvailableSlotUseCase;
 
     /**
      * Processa a resposta enviada pelo paciente.
@@ -66,7 +72,6 @@ public class ResponseProcessorService {
         updateAppointment(delivery);
 
         invalidateRemainingDeliveries(delivery);
-
     }
 
     /**
@@ -120,15 +125,16 @@ public class ResponseProcessorService {
         );
 
         communicationRepository.save(communication);
-
     }
 
     /**
      * Atualiza o status do agendamento conforme
      * a resposta informada pelo paciente.
      *
-     * Resposta YES -> CONFIRMED
-     * Resposta NO -> CANCELLED
+     * YES -> CONFIRMED
+     *
+     * NO -> CANCELLED e libera o horário para
+     * reaproveitamento pela unidade de saúde.
      *
      * @param delivery notificação respondida.
      */
@@ -141,14 +147,19 @@ public class ResponseProcessorService {
 
             appointment.confirm();
 
-        } else {
+            appointmentRepository.save(appointment);
+
+            return;
+        }
+
+        if (delivery.getPatientResponse() == PatientResponse.NO) {
 
             appointment.cancel();
 
+            appointmentRepository.save(appointment);
+
+            releaseAvailableSlotUseCase.execute(appointment);
         }
-
-        appointmentRepository.save(appointment);
-
     }
 
     /**
@@ -175,9 +186,10 @@ public class ResponseProcessorService {
             if (delivery.getId().equals(currentDelivery.getId())) {
                 continue;
             }
+
             delivery.invalidate();
         }
+
         notificationDeliveryRepository.saveAll(deliveries);
     }
-
 }

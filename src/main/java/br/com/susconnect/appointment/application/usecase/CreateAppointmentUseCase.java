@@ -53,7 +53,7 @@ public class CreateAppointmentUseCase {
 
         appointment = appointmentRepository.save(appointment);
 
-        generateCommunicationUseCase.execute(appointment);
+        generateCommunicationUseCase.execute(appointment.getId());
 
         return mapper.toResponse(appointment);
 
