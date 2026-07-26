@@ -11,6 +11,18 @@ import org.springframework.web.bind.annotation.*;
 import br.com.susconnect.availability.application.dto.AvailableSlotIndicatorsResponse;
 import br.com.susconnect.availability.application.usecase.GetAvailableSlotIndicatorsUseCase;
 
+import br.com.susconnect.appointment.domain.entity.Appointment;
+import br.com.susconnect.appointment.infrastructure.persistence.AppointmentRepository;
+import br.com.susconnect.availability.application.dto.NextAvailabilityResponse;
+import br.com.susconnect.availability.application.usecase.FindNextAvailabilityUseCase;
+import br.com.susconnect.common.exception.ResourceNotFoundException;
+
+import br.com.susconnect.appointment.domain.enums.AppointmentStatus;
+import br.com.susconnect.common.exception.BusinessException;
+
+import java.util.Optional;
+import java.util.UUID;
+
 import java.util.List;
 
 /**
@@ -37,6 +49,10 @@ public class AvailableSlotController {
     private final FindAvailableSlotsUseCase findAvailableSlotsUseCase;
 
     private final GetAvailableSlotIndicatorsUseCase getAvailableSlotIndicatorsUseCase;
+
+    private final FindNextAvailabilityUseCase findNextAvailabilityUseCase;
+
+    private final AppointmentRepository appointmentRepository;
 
     /**
      * Retorna todas as vagas atualmente disponíveis
@@ -94,5 +110,68 @@ public class AvailableSlotController {
                         indicators
                 )
         );
+    }
+
+    /**
+     * Consulta a próxima disponibilidade compatível
+     * com um agendamento recusado pelo paciente.
+     *
+     * A operação possui caráter exclusivamente informativo.
+     * Nenhuma vaga é reservada e nenhum novo agendamento
+     * é criado.
+     *
+     * @param appointmentId identificador do agendamento recusado.
+     * @return próxima disponibilidade encontrada.
+     */
+    @GetMapping("/next")
+    @Operation(
+            summary = "Consultar próxima disponibilidade",
+            description = """
+            Consulta a próxima vaga disponível compatível com
+            o tipo de atendimento e a especialidade do
+            agendamento informado.
+
+            A consulta é exclusivamente informativa.
+            A vaga encontrada não é reservada e nenhum novo
+            agendamento é criado para o paciente.
+            """
+    )
+    public ResponseEntity<SuccessResponse<NextAvailabilityResponse>>
+    findNextAvailability(
+            @RequestParam UUID appointmentId) {
+
+        Appointment appointment =
+                appointmentRepository.findById(appointmentId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Agendamento não encontrado."
+                                ));
+
+        if (appointment.getStatus() != AppointmentStatus.CANCELLED) {
+            throw new BusinessException(
+                    "A próxima disponibilidade somente pode ser consultada para um agendamento cancelado."
+            );
+        }
+
+        Optional<NextAvailabilityResponse> nextAvailability =
+                findNextAvailabilityUseCase.execute(appointment);
+
+        return nextAvailability
+                .map(response ->
+                        ResponseEntity.ok(
+                                SuccessResponse.success(
+                                        "Próxima disponibilidade encontrada.",
+                                        response
+                                )
+                        )
+                )
+                .orElseGet(() ->
+                        ResponseEntity.ok(
+                                SuccessResponse.success(
+                                        "Não existe próxima disponibilidade compatível no momento.",
+                                        null
+                                )
+                        )
+                );
     }
 }

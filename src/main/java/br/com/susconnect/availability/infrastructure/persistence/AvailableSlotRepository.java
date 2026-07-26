@@ -1,10 +1,14 @@
 package br.com.susconnect.availability.infrastructure.persistence;
 
+import br.com.susconnect.appointment.domain.enums.AppointmentType;
+import br.com.susconnect.appointment.domain.enums.MedicalSpecialty;
 import br.com.susconnect.availability.domain.entity.AvailableSlot;
 import br.com.susconnect.availability.domain.enums.AvailableSlotStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -53,5 +57,30 @@ public interface AvailableSlotRepository
      * @return quantidade de vagas encontradas.
      */
     long countByStatus(AvailableSlotStatus status);
+
+    /**
+     * Busca a próxima vaga disponível compatível com
+     * o tipo de atendimento e a especialidade médica.
+     *
+     * A consulta considera apenas vagas posteriores
+     * à data e hora informadas e retorna a vaga
+     * cronologicamente mais próxima.
+     *
+     * Esta operação é somente informativa e não
+     * realiza reserva ou reagendamento.
+     *
+     * @param status status atual da vaga.
+     * @param appointmentType tipo de atendimento.
+     * @param medicalSpecialty especialidade médica.
+     * @param appointmentDateTime data e hora de referência.
+     * @return próxima vaga disponível, quando existente.
+     */
+    Optional<AvailableSlot>
+    findFirstByStatusAndAppointmentTypeAndMedicalSpecialtyAndAppointmentDateTimeAfterOrderByAppointmentDateTimeAsc(
+            AvailableSlotStatus status,
+            AppointmentType appointmentType,
+            MedicalSpecialty medicalSpecialty,
+            LocalDateTime appointmentDateTime
+    );
 
 }
