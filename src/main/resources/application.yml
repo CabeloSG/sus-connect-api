@@ -3,11 +3,17 @@ spring:
   application:
     name: SUS Connect API
 
+  # ============================================================
+  # PostgreSQL
+  # ============================================================
   datasource:
     url: jdbc:postgresql://localhost:5432/sus_connect
     username: postgres
     password: postgres
 
+  # ============================================================
+  # JPA / Hibernate
+  # ============================================================
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,17 +26,74 @@ spring:
       hibernate:
         format_sql: true
 
+  # ============================================================
+  # Jackson
+  # ============================================================
   jackson:
     time-zone: America/Sao_Paulo
 
+  # ============================================================
+  # Apache Kafka
+  # ============================================================
+  kafka:
+
+    # Broker Kafka executado pelo Docker
+    bootstrap-servers: localhost:9092
+
+    # ----------------------------------------------------------
+    # Producer
+    # Spring Boot -> Kafka
+    # ----------------------------------------------------------
+    producer:
+
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    # ----------------------------------------------------------
+    # Consumer
+    # Kafka -> Spring Boot
+    # ----------------------------------------------------------
+    consumer:
+
+      # Grupo dos consumidores do SUS Connect
+      group-id: sus-connect
+
+      # Permite consumir eventos existentes quando
+      # ainda não houver offset registrado para o grupo
+      auto-offset-reset: earliest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+
+        # Pacotes permitidos para desserialização dos eventos
+        spring.json.trusted.packages: "br.com.susconnect.*"
+
+
+# ==============================================================
+# Servidor
+# ==============================================================
 server:
   port: 8080
 
+
+# ==============================================================
+# Swagger / OpenAPI
+# ==============================================================
 springdoc:
+
   swagger-ui:
     path: /swagger
 
+
+# ==============================================================
+# Logging
+# ==============================================================
 logging:
+
   level:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG

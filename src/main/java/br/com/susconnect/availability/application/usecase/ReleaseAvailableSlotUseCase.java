@@ -1,8 +1,10 @@
 package br.com.susconnect.availability.application.usecase;
 
 import br.com.susconnect.appointment.domain.entity.Appointment;
+import br.com.susconnect.availability.application.event.AvailableSlotReleasedEvent;
 import br.com.susconnect.availability.domain.entity.AvailableSlot;
 import br.com.susconnect.availability.domain.enums.AvailableSlotStatus;
+import br.com.susconnect.availability.infrastructure.messaging.AvailableSlotEventPublisher;
 import br.com.susconnect.availability.infrastructure.persistence.AvailableSlotRepository;
 import br.com.susconnect.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
  * Quando um paciente recusa um atendimento, o agendamento
  * original é cancelado e o horário correspondente pode ser
  * disponibilizado para reaproveitamento pela unidade de saúde.
+ *
+ * Após a persistência da vaga, um evento é publicado para
+ * permitir o processamento assíncrono por outros componentes.
  *
  * Projeto: SUS Connect
  * Hackathon FIAP - Arquitetura e Desenvolvimento Java
@@ -32,8 +37,11 @@ public class ReleaseAvailableSlotUseCase {
 
     private final AvailableSlotRepository availableSlotRepository;
 
+    private final AvailableSlotEventPublisher availableSlotEventPublisher;
+
     /**
-     * Libera uma vaga correspondente ao agendamento cancelado.
+     * Libera uma vaga correspondente ao agendamento cancelado
+     * e publica o evento de vaga liberada.
      *
      * @param appointment agendamento que originou a vaga.
      * @return vaga disponibilizada para reaproveitamento.
@@ -44,9 +52,15 @@ public class ReleaseAvailableSlotUseCase {
 
         validateSlotDoesNotExist(appointment);
 
-        AvailableSlot availableSlot = buildAvailableSlot(appointment);
+        AvailableSlot availableSlot =
+                buildAvailableSlot(appointment);
 
-        return availableSlotRepository.save(availableSlot);
+        AvailableSlot savedSlot =
+                availableSlotRepository.save(availableSlot);
+
+        publishAvailableSlotReleasedEvent(savedSlot);
+
+        return savedSlot;
     }
 
     /**
@@ -103,5 +117,28 @@ public class ReleaseAvailableSlotUseCase {
                         appointment.getHealthUnit())
                 .status(AvailableSlotStatus.AVAILABLE)
                 .build();
+    }
+
+    /**
+     * Publica o evento informando que uma nova vaga
+     * foi disponibilizada para reaproveitamento.
+     *
+     * @param availableSlot vaga persistida.
+     */
+    private void publishAvailableSlotReleasedEvent(
+            AvailableSlot availableSlot) {
+
+        AvailableSlotReleasedEvent event =
+                new AvailableSlotReleasedEvent(
+                        availableSlot.getId(),
+                        availableSlot.getSourceAppointment().getId(),
+                        availableSlot.getAppointmentDateTime(),
+                        availableSlot.getAppointmentType(),
+                        availableSlot.getMedicalSpecialty(),
+                        availableSlot.getDoctor(),
+                        availableSlot.getHealthUnit()
+                );
+
+        availableSlotEventPublisher.publish(event);
     }
 }
