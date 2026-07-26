@@ -42,4 +42,16 @@ public interface AvailableSlotRepository
      */
     boolean existsBySourceAppointmentId(UUID sourceAppointmentId);
 
+    /**
+     * Conta a quantidade de vagas de acordo
+     * com o status informado.
+     *
+     * Utilizado para geração dos indicadores
+     * operacionais de vagas do SUS Connect.
+     *
+     * @param status status da vaga.
+     * @return quantidade de vagas encontradas.
+     */
+    long countByStatus(AvailableSlotStatus status);
+
 }

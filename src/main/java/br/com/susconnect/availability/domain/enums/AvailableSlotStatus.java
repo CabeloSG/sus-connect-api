@@ -4,9 +4,12 @@ package br.com.susconnect.availability.domain.enums;
  * Representa os possíveis estados de uma vaga disponibilizada
  * após o cancelamento ou recusa de um agendamento.
  *
- * Uma vaga é criada inicialmente como AVAILABLE e poderá,
- * futuramente, ser reservada ou ocupada durante o processo
- * de reaproveitamento da agenda da unidade de saúde.
+ * Uma vaga é criada inicialmente como AVAILABLE e permanece
+ * disponível para reaproveitamento pela equipe da unidade de saúde.
+ *
+ * A vaga poderá ser marcada como FILLED quando o horário for
+ * ocupado novamente ou como EXPIRED quando não puder mais ser
+ * reaproveitado.
  *
  * Projeto: SUS Connect
  * Hackathon FIAP - Arquitetura e Desenvolvimento Java
@@ -19,19 +22,21 @@ package br.com.susconnect.availability.domain.enums;
 public enum AvailableSlotStatus {
 
     /**
-     * Vaga disponível para reaproveitamento.
+     * Vaga disponível para reaproveitamento
+     * pela equipe da unidade de saúde.
      */
     AVAILABLE,
 
     /**
-     * Vaga temporariamente reservada durante
-     * o processo de seleção de um paciente.
+     * Vaga preenchida após atuação da equipe
+     * responsável pelo agendamento.
      */
-    RESERVED,
+    FILLED,
 
     /**
-     * Vaga preenchida por um novo agendamento.
+     * Vaga que não foi reaproveitada antes
+     * da data e horário do atendimento.
      */
-    FILLED
+    EXPIRED
 
 }
