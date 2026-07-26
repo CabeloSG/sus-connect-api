@@ -15,6 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.susconnect.availability.application.dto.NextAvailabilityResponse;
+import br.com.susconnect.availability.application.event.NextAvailabilityFoundEvent;
+import br.com.susconnect.availability.application.usecase.FindNextAvailabilityUseCase;
+import br.com.susconnect.availability.infrastructure.messaging.NextAvailabilityEventPublisher;
+
 import java.util.List;
 
 /**
@@ -48,6 +53,8 @@ public class ResponseProcessorService {
     private final CommunicationResponseValidator communicationResponseValidator;
     private final AppointmentRepository appointmentRepository;
     private final ReleaseAvailableSlotUseCase releaseAvailableSlotUseCase;
+    private final FindNextAvailabilityUseCase findNextAvailabilityUseCase;
+    private final NextAvailabilityEventPublisher nextAvailabilityEventPublisher;
 
     /**
      * Processa a resposta enviada pelo paciente.
@@ -159,6 +166,8 @@ public class ResponseProcessorService {
             appointmentRepository.save(appointment);
 
             releaseAvailableSlotUseCase.execute(appointment);
+
+            notifyNextAvailability(appointment);
         }
     }
 
@@ -191,5 +200,52 @@ public class ResponseProcessorService {
         }
 
         notificationDeliveryRepository.saveAll(deliveries);
+    }
+
+    /**
+     * Busca a próxima disponibilidade compatível após
+     * a recusa do paciente e, quando encontrada, publica
+     * um evento para comunicação informativa.
+     *
+     * A operação não reserva a vaga e não cria
+     * um novo agendamento.
+     *
+     * @param appointment agendamento recusado pelo paciente.
+     */
+    private void notifyNextAvailability(Appointment appointment) {
+
+        findNextAvailabilityUseCase.execute(appointment)
+                .ifPresent(nextAvailability ->
+                        publishNextAvailabilityEvent(
+                                appointment,
+                                nextAvailability
+                        )
+                );
+    }
+
+    /**
+     * Publica o evento de próxima disponibilidade encontrada
+     * para processamento assíncrono da comunicação ao paciente.
+     *
+     * @param appointment agendamento cancelado.
+     * @param nextAvailability próxima disponibilidade encontrada.
+     */
+    private void publishNextAvailabilityEvent(
+            Appointment appointment,
+            NextAvailabilityResponse nextAvailability) {
+
+        NextAvailabilityFoundEvent event =
+                new NextAvailabilityFoundEvent(
+                        appointment.getPatient().getId(),
+                        appointment.getId(),
+                        nextAvailability.availableSlotId(),
+                        nextAvailability.appointmentDateTime(),
+                        nextAvailability.appointmentType(),
+                        nextAvailability.medicalSpecialty(),
+                        nextAvailability.doctor(),
+                        nextAvailability.healthUnit()
+                );
+
+        nextAvailabilityEventPublisher.publish(event);
     }
 }
