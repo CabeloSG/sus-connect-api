@@ -1,5 +1,6 @@
 package br.com.susconnect.availability.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,8 @@ import lombok.NoArgsConstructor;
  * disponibilizadas para reaproveitamento.
  *
  * Permite que a equipe da unidade de saúde visualize
- * rapidamente a quantidade de vagas disponíveis,
- * preenchidas e expiradas.
+ * rapidamente a quantidade total de vagas geradas,
+ * disponíveis, preenchidas e expiradas.
  *
  * Projeto: SUS Connect
  * Hackathon FIAP - Arquitetura e Desenvolvimento Java
@@ -28,20 +29,30 @@ import lombok.NoArgsConstructor;
 public class AvailableSlotIndicatorsResponse {
 
     /**
+     * Quantidade total de vagas geradas
+     * para reaproveitamento.
+     */
+    @JsonProperty("totalVagas")
+    private long totalSlots;
+
+    /**
      * Quantidade de vagas atualmente disponíveis
      * para reaproveitamento.
      */
+    @JsonProperty("vagasDisponiveis")
     private long availableSlots;
 
     /**
-     * Quantidade de vagas que foram reaproveitadas
-     * pela equipe da unidade de saúde.
+     * Quantidade de vagas que foram efetivamente
+     * reaproveitadas.
      */
+    @JsonProperty("vagasPreenchidas")
     private long filledSlots;
 
     /**
      * Quantidade de vagas que expiraram sem
      * serem reaproveitadas.
      */
+    @JsonProperty("vagasExpiradas")
     private long expiredSlots;
 }

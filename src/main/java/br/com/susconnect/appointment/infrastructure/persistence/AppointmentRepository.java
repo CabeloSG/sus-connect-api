@@ -69,4 +69,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      */
     boolean existsByPatient_Id(UUID patientId);
 
+    /**
+     * Conta a quantidade de agendamentos
+     * de acordo com o status informado.
+     *
+     * Utilizado para geração dos indicadores
+     * operacionais do dashboard do SUS Connect.
+     *
+     * @param status status do agendamento.
+     * @return quantidade de agendamentos encontrados.
+     */
+    long countByStatus(AppointmentStatus status);
+
 }

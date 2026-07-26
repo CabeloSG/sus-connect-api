@@ -37,6 +37,9 @@ public class GetAvailableSlotIndicatorsUseCase {
      */
     public AvailableSlotIndicatorsResponse execute() {
 
+        long totalSlots =
+                availableSlotRepository.count();
+
         long availableSlots =
                 availableSlotRepository.countByStatus(
                         AvailableSlotStatus.AVAILABLE
@@ -53,6 +56,7 @@ public class GetAvailableSlotIndicatorsUseCase {
                 );
 
         return AvailableSlotIndicatorsResponse.builder()
+                .totalSlots(totalSlots)
                 .availableSlots(availableSlots)
                 .filledSlots(filledSlots)
                 .expiredSlots(expiredSlots)
