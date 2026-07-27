@@ -737,9 +737,9 @@ Projeto desenvolvido durante o **Hackathon FIAP – Pós-Graduação em Arquitet
 
 ### Integrantes
 
-- **Leandro Gonçalves**
-- **Felipe**
-- **Lucas**
+- **Leandro da Silva Gonçalves – RM367789**
+- **Filipe Gonçalves Ferreira – RM367737**
+- **Lucas Santos Escolástico do Nascimento – RM367273**
 
 ---
 
