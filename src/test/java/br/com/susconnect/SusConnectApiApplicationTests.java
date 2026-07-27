@@ -1,4 +1,4 @@
-package sus_connect_api;
+package br.com.susconnect;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

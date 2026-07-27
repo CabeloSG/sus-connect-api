@@ -5,6 +5,8 @@ import br.com.susconnect.appointment.application.dto.CreateAppointmentRequest;
 import br.com.susconnect.appointment.application.usecase.CreateAppointmentUseCase;
 import br.com.susconnect.appointment.application.usecase.FindAllAppointmentsUseCase;
 import br.com.susconnect.appointment.application.usecase.FindAppointmentByIdUseCase;
+import br.com.susconnect.appointment.application.dto.RegisterAttendanceRequest;
+import br.com.susconnect.appointment.application.usecase.RegisterAttendanceUseCase;
 import br.com.susconnect.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +42,8 @@ public class AppointmentController {
     private final FindAppointmentByIdUseCase findAppointmentByIdUseCase;
 
     private final FindAllAppointmentsUseCase findAllAppointmentsUseCase;
+
+    private final RegisterAttendanceUseCase registerAttendanceUseCase;
 
     /**
      * Realiza o cadastro de um novo agendamento.
@@ -91,6 +95,53 @@ public class AppointmentController {
                 SuccessResponse.success(
                         "Agendamento encontrado.",
                         findAppointmentByIdUseCase.execute(id)));
+    }
+
+    /**
+     * Registra o desfecho do atendimento.
+     *
+     * O registro somente poderá ocorrer após o horário
+     * previsto para a consulta.
+     *
+     * attended = true  -> COMPLETED
+     * attended = false -> NO_SHOW
+     *
+     * @param id identificador do agendamento.
+     * @param request informação de comparecimento.
+     * @return agendamento atualizado.
+     */
+    @PatchMapping("/{id}/attendance")
+    @Operation(
+            summary = "Registrar comparecimento do paciente",
+            description = """
+                Registra o desfecho de um atendimento.
+
+                attended = true:
+                o paciente compareceu e o agendamento passa
+                para COMPLETED.
+
+                attended = false:
+                o paciente não compareceu e o agendamento
+                passa para NO_SHOW.
+
+                O registro somente pode ser realizado após
+                o horário previsto para o atendimento.
+                """
+    )
+    public ResponseEntity<SuccessResponse<AppointmentResponse>>
+    registerAttendance(
+            @PathVariable UUID id,
+            @Valid @RequestBody RegisterAttendanceRequest request) {
+
+        AppointmentResponse response =
+                registerAttendanceUseCase.execute(id, request);
+
+        return ResponseEntity.ok(
+                SuccessResponse.success(
+                        "Desfecho do atendimento registrado com sucesso.",
+                        response
+                )
+        );
     }
 
 }

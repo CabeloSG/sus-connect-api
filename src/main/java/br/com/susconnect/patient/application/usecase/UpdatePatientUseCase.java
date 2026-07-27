@@ -1,6 +1,5 @@
 package br.com.susconnect.patient.application.usecase;
 
-import br.com.susconnect.common.exception.BusinessException;
 import br.com.susconnect.common.exception.ResourceNotFoundException;
 import br.com.susconnect.patient.application.dto.PatientResponse;
 import br.com.susconnect.patient.application.dto.UpdatePatientRequest;

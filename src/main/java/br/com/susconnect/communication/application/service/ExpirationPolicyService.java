@@ -35,7 +35,7 @@ public class ExpirationPolicyService {
      * @return data e hora de expiração.
      */
     public LocalDateTime calculateExpiration(Appointment appointment) {
-        return appointment.getConfirmationDeadline().minusDays(2);
+        return appointment.getConfirmationDeadline();
     }
 
 }

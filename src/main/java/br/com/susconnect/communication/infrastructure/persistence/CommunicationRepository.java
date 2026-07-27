@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 public interface CommunicationRepository
         extends JpaRepository<Communication, UUID> {
@@ -26,5 +27,10 @@ public interface CommunicationRepository
      * @return quantidade de comunicações encontradas.
      */
     long countByStatus(CommunicationStatus status);
+
+    List<Communication> findByStatusAndExpirationDateBefore(
+            CommunicationStatus status,
+            LocalDateTime expirationDate
+    );
 
 }

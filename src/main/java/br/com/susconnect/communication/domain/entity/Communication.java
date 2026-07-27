@@ -111,4 +111,18 @@ public class Communication extends BaseEntity {
 
     }
 
+    /**
+     * Expira a comunicação quando o prazo para resposta
+     * do paciente é encerrado sem manifestação.
+     *
+     * A expiração da comunicação não cancela
+     * o agendamento associado.
+     */
+    public void expire() {
+
+        if (this.status == CommunicationStatus.PENDING) {
+            this.status = CommunicationStatus.EXPIRED;
+        }
+    }
+
 }

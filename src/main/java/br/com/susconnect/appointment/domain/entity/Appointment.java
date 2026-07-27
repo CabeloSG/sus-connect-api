@@ -105,4 +105,24 @@ public class Appointment extends BaseEntity {
 
     }
 
+    /**
+     * Registra que o paciente compareceu e
+     * o atendimento foi realizado.
+     */
+    public void complete() {
+
+        this.status = AppointmentStatus.COMPLETED;
+
+    }
+
+    /**
+     * Registra que o paciente não compareceu
+     * ao atendimento.
+     */
+    public void markAsNoShow() {
+
+        this.status = AppointmentStatus.NO_SHOW;
+
+    }
+
 }

@@ -7,9 +7,9 @@ spring:
   # PostgreSQL
   # ============================================================
   datasource:
-    url: jdbc:postgresql://localhost:5432/sus_connect
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sus_connect}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
 
   # ============================================================
   # JPA / Hibernate
@@ -19,7 +19,6 @@ spring:
       ddl-auto: update
 
     show-sql: true
-
     open-in-view: false
 
     properties:
@@ -36,40 +35,20 @@ spring:
   # Apache Kafka
   # ============================================================
   kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
-    # Broker Kafka executado pelo Docker
-    bootstrap-servers: localhost:9092
-
-    # ----------------------------------------------------------
-    # Producer
-    # Spring Boot -> Kafka
-    # ----------------------------------------------------------
     producer:
-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-    # ----------------------------------------------------------
-    # Consumer
-    # Kafka -> Spring Boot
-    # ----------------------------------------------------------
     consumer:
-
-      # Grupo dos consumidores do SUS Connect
       group-id: sus-connect
-
-      # Permite consumir eventos existentes quando
-      # ainda não houver offset registrado para o grupo
       auto-offset-reset: earliest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
       properties:
-
-        # Pacotes permitidos para desserialização dos eventos
         spring.json.trusted.packages: "br.com.susconnect.*"
 
 
@@ -84,7 +63,6 @@ server:
 # Swagger / OpenAPI
 # ==============================================================
 springdoc:
-
   swagger-ui:
     path: /swagger
 
@@ -93,10 +71,10 @@ springdoc:
 # Logging
 # ==============================================================
 logging:
-
   level:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
+
 
 # ==============================================================
 # Machine Learning - Predição de risco de No-Show
@@ -104,7 +82,4 @@ logging:
 sus-connect:
 
   ml:
-
-    # Serviço Python/FastAPI responsável pela predição
-    # do risco de ausência do paciente.
-    base-url: http://localhost:8000
+    base-url: ${ML_BASE_URL:http://localhost:8000}

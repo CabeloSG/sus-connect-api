@@ -134,4 +134,22 @@ public class NotificationDelivery extends BaseEntity {
         this.sentAt = LocalDateTime.now();
     }
 
+    /**
+     * Expira a notificação quando o prazo da comunicação
+     * é encerrado sem resposta do paciente.
+     *
+     * Notificações já respondidas ou invalidadas
+     * não devem ser alteradas.
+     */
+    public void expire() {
+
+        if (this.status == DeliveryStatus.CREATED
+                || this.status == DeliveryStatus.SENT
+                || this.status == DeliveryStatus.DELIVERED
+                || this.status == DeliveryStatus.OPENED) {
+
+            this.status = DeliveryStatus.EXPIRED;
+        }
+    }
+
 }
