@@ -1,6 +1,7 @@
 package br.com.susconnect.common.exception;
 
 import br.com.susconnect.common.response.ErrorResponse;
+import br.com.susconnect.ml.domain.exception.MlServiceUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -109,6 +110,29 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 message,
+                request
+        );
+    }
+
+    /**
+     * Trata indisponibilidade do serviço de Machine Learning.
+     *
+     * Esse cenário pode ocorrer quando o serviço Python responsável
+     * pelas predições estiver indisponível, retornar uma resposta
+     * inválida ou ocorrer uma falha durante a comunicação.
+     *
+     * @param ex exceção lançada pelo cliente de Machine Learning.
+     * @param request requisição HTTP.
+     * @return resposta HTTP 503.
+     */
+    @ExceptionHandler(MlServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleMlServiceUnavailableException(
+            MlServiceUnavailableException ex,
+            HttpServletRequest request) {
+
+        return buildErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                ex.getMessage(),
                 request
         );
     }

@@ -97,3 +97,14 @@ logging:
   level:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
+
+# ==============================================================
+# Machine Learning - Predição de risco de No-Show
+# ==============================================================
+sus-connect:
+
+  ml:
+
+    # Serviço Python/FastAPI responsável pela predição
+    # do risco de ausência do paciente.
+    base-url: http://localhost:8000
